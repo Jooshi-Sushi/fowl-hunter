@@ -22,7 +22,13 @@ function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface-2)] transition-colors"
+      className="p-2 rounded-full transition-colors"
+      style={{
+        color: 'var(--on-surface-variant)',
+        background: 'transparent',
+      }}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container-high)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
@@ -49,7 +55,7 @@ function AppInner() {
       particleCount: 120,
       spread: 80,
       origin: { y: 0.6 },
-      colors: ['#7c3aed', '#a78bfa', '#ec4899', '#f59e0b', '#10b981'],
+      colors: ['#b6004f', '#ff7196', '#a855f7', '#f59e0b', '#10b981'],
     })
   }
 
@@ -87,26 +93,45 @@ function AppInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-        <div className="text-[var(--text-4)] text-sm">Loading…</div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--surface)' }}
+      >
+        <div style={{ color: 'var(--on-surface-muted)', fontSize: '0.875rem', fontFamily: 'var(--font-body)' }}>
+          Loading…
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen" style={{ background: 'var(--surface)' }}>
       <header
-        className="border-b border-[var(--border)] backdrop-blur-md sticky top-0 z-40"
-        style={{ backgroundColor: 'var(--header-bg)' }}
+        className="sticky top-0 z-40 backdrop-blur-xl"
+        style={{
+          background: 'rgba(245,246,247,0.8)',
+          boxShadow: '0 1px 20px rgba(44,47,48,0.06)',
+        }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
+            {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
-                <Bird size={14} className="text-white" />
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-container))' }}
+              >
+                <Bird size={14} style={{ color: 'var(--on-primary)' }} />
               </div>
-              <span className="font-bold text-[var(--text-1)] text-sm tracking-tight">Fowl Hunter</span>
+              <span
+                className="text-sm tracking-tight"
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--on-surface)' }}
+              >
+                Fowl Hunter
+              </span>
             </div>
+
+            {/* Nav + Toggle */}
             <div className="flex items-center gap-1">
               <nav className="flex items-center gap-1">
                 {TABS.map(t => {
@@ -116,11 +141,18 @@ function AppInner() {
                     <button
                       key={t.id}
                       onClick={() => setTab(t.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        active
-                          ? 'bg-violet-600/20 text-violet-400'
-                          : 'text-[var(--text-3)] hover:text-[var(--text-1)] hover:bg-[var(--surface-2)]'
-                      }`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                      style={{
+                        background: active ? 'rgba(182,0,79,0.08)' : 'transparent',
+                        color: active ? 'var(--primary)' : 'var(--on-surface-variant)',
+                        fontFamily: 'var(--font-body)',
+                      }}
+                      onMouseEnter={e => {
+                        if (!active) e.currentTarget.style.background = 'var(--surface-container-high)'
+                      }}
+                      onMouseLeave={e => {
+                        if (!active) e.currentTarget.style.background = 'transparent'
+                      }}
                     >
                       <Icon size={13} />
                       <span className="hidden sm:inline">{t.label}</span>

@@ -1,33 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/* ── CSS Custom Properties ─────────────────────────────── */
-:root,
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface-2: #222638;
-  --border: #2d3248;
-  --text-1: #ffffff;
-  --text-2: #cbd5e1;
-  --text-3: #94a3b8;
-  --text-4: #64748b;
-  --input-bg: #1e2130;
-  --header-bg: rgba(15, 17, 23, 0.85);
+/* ── CSS Custom Properties (light / default) ───────────────── */
+:root {
+  color-scheme: light;
+  --surface:                  #f5f6f7;
+  --surface-container-low:    #eff1f2;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high:   #e0e3e4;
+  --surface-variant:          #dde3ea;
+  --primary:                  #b6004f;
+  --primary-container:        #ff7196;
+  --on-primary:               #ffffff;
+  --on-surface:               #2c2f30;
+  --on-surface-variant:       #44474f;
+  --on-surface-muted:         #74777f;
+  --outline-variant:          #abadae;
+  --secondary-container:      #ead9ff;
+  --on-secondary-container:   #21005d;
+  --error:                    #ba1a1a;
+  --error-container:          #ffdad6;
+  --on-error:                 #ffffff;
+
+  --font-display: 'Manrope', sans-serif;
+  --font-body:    'Inter', sans-serif;
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f1f5f9;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #e2e8f0;
-  --text-1: #0f172a;
-  --text-2: #1e293b;
-  --text-3: #475569;
-  --text-4: #94a3b8;
-  --input-bg: #f8fafc;
-  --header-bg: rgba(241, 245, 249, 0.85);
+/* ── Dark mode overrides ───────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface:                  #0f1117;
+  --surface-container-low:    #13161f;
+  --surface-container-lowest: #1a1d27;
+  --surface-container-high:   #2a2e42;
+  --surface-variant:          #2a2e42;
+  --primary:                  #f472b6;
+  --primary-container:        #a855f7;
+  --on-primary:               #ffffff;
+  --on-surface:               #f1f5f9;
+  --on-surface-variant:       #cbd5e1;
+  --on-surface-muted:         #64748b;
+  --outline-variant:          #334155;
+  --secondary-container:      #2d1b69;
+  --on-secondary-container:   #ddd6fe;
+  --error:                    #f87171;
+  --error-container:          #450a0a;
+  --on-error:                 #ffffff;
 }
 
 * {
@@ -36,9 +54,9 @@
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  color: var(--text-2);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 

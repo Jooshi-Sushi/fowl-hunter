@@ -12,40 +12,129 @@ import Avatar from '../components/Avatar'
 import { isSuccess, PLATFORM_CONFIG } from '../constants'
 import { formatRelativeTime, formatFullDate, truncate } from '../utils'
 
-function StatCard({ icon: Icon, label, value, sub, color = 'text-[var(--text-1)]' }) {
+const CARD_SHADOW = '0 2px 40px -5px rgba(44,47,48,0.06), 0 1px 8px -2px rgba(44,47,48,0.04)'
+
+// Metric Bloom card
+function StatCard({ icon: Icon, label, value, sub, bloomColor = 'rgba(182,0,79,0.08)' }) {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2 min-w-[130px]">
-      <div className="flex items-center gap-2 text-[var(--text-4)] text-xs font-medium">
-        <Icon size={13} />
+    <div
+      className="flex flex-col gap-1 min-w-[140px] p-6 rounded-2xl relative overflow-hidden flex-shrink-0"
+      style={{
+        background: 'var(--surface-container-lowest)',
+        boxShadow: CARD_SHADOW,
+      }}
+    >
+      {/* Bloom gradient behind number */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '120px',
+          height: '120px',
+          background: `radial-gradient(ellipse at center, ${bloomColor} 0%, transparent 70%)`,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Label */}
+      <div
+        className="flex items-center gap-1.5 text-xs font-medium relative z-10"
+        style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+      >
+        <Icon size={12} />
         {label}
       </div>
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      {sub && <div className="text-xs text-[var(--text-4)]">{sub}</div>}
+
+      {/* Giant metric value */}
+      <div
+        className="relative z-10"
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 800,
+          fontSize: '3rem',
+          lineHeight: 1,
+          color: 'var(--on-surface)',
+          letterSpacing: '-0.02em',
+        }}
+      >
+        {value}
+      </div>
+
+      {/* Sub-text */}
+      {sub && (
+        <div
+          className="text-xs relative z-10"
+          style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+        >
+          {sub}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SectionCard({ children, className = '' }) {
+  return (
+    <div
+      className={`rounded-2xl overflow-hidden ${className}`}
+      style={{
+        background: 'var(--surface-container-lowest)',
+        boxShadow: CARD_SHADOW,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function SectionHeader({ icon: Icon, title, action }) {
+  return (
+    <div
+      className="flex items-center justify-between px-5 py-4"
+      style={{ borderBottom: '1px solid rgba(171,173,174,0.12)' }}
+    >
+      <div className="flex items-center gap-2">
+        {Icon && <Icon size={15} style={{ color: 'var(--primary)' }} />}
+        <h3
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            color: 'var(--on-surface)',
+            margin: 0,
+          }}
+        >
+          {title}
+        </h3>
+      </div>
+      {action}
     </div>
   )
 }
 
 function EmptyState({ message }) {
   return (
-    <div className="text-center py-12 text-[var(--text-4)] text-sm">{message}</div>
+    <div
+      className="text-center py-12 text-sm"
+      style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+    >
+      {message}
+    </div>
   )
 }
 
-// Compute streak: consecutive days ending today (or yesterday) with at least 1 DM
 function computeStreak(dms) {
   if (!dms.length) return 0
-  // Build a set of date strings (YYYY-MM-DD) that have at least 1 DM
   const daySet = new Set(dms.map(d => d.sentAt.slice(0, 10)))
   const today = new Date()
   let streak = 0
   let cursor = new Date(today)
-
-  // If no DM today, start from yesterday
   const todayStr = today.toISOString().slice(0, 10)
   if (!daySet.has(todayStr)) {
     cursor.setDate(cursor.getDate() - 1)
   }
-
   while (true) {
     const dateStr = cursor.toISOString().slice(0, 10)
     if (!daySet.has(dateStr)) break
@@ -58,11 +147,21 @@ function computeStreak(dms) {
 function CustomBarTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs shadow-xl">
-      <div className="text-[var(--text-3)] mb-1">{label}:00</div>
-      <div className="text-[var(--text-1)]">{payload[0]?.value} DMs</div>
+    <div
+      className="rounded-xl px-3 py-2 text-xs"
+      style={{
+        background: 'rgba(255,255,255,0.92)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(171,173,174,0.15)',
+        boxShadow: '0 4px 20px rgba(44,47,48,0.1)',
+        color: 'var(--on-surface)',
+        fontFamily: 'var(--font-body)',
+      }}
+    >
+      <div style={{ color: 'var(--on-surface-muted)', marginBottom: '0.2rem' }}>{label}:00</div>
+      <div style={{ color: 'var(--on-surface)' }}>{payload[0]?.value} DMs</div>
       {payload[0]?.payload?.rate != null && (
-        <div className="text-green-400">{payload[0].payload.rate}% success</div>
+        <div style={{ color: '#10b981' }}>{payload[0].payload.rate}% success</div>
       )}
     </div>
   )
@@ -71,9 +170,19 @@ function CustomBarTooltip({ active, payload, label }) {
 function CustomLineTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs shadow-xl">
-      <div className="text-[var(--text-3)] mb-1">Week of {label}</div>
-      <div className="text-violet-400">{payload[0]?.value}% success rate</div>
+    <div
+      className="rounded-xl px-3 py-2 text-xs"
+      style={{
+        background: 'rgba(255,255,255,0.92)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid rgba(171,173,174,0.15)',
+        boxShadow: '0 4px 20px rgba(44,47,48,0.1)',
+        color: 'var(--on-surface)',
+        fontFamily: 'var(--font-body)',
+      }}
+    >
+      <div style={{ color: 'var(--on-surface-muted)', marginBottom: '0.2rem' }}>Week of {label}</div>
+      <div style={{ color: 'var(--primary)' }}>{payload[0]?.value}% success rate</div>
     </div>
   )
 }
@@ -128,7 +237,6 @@ export default function Overview({ dms, lines, onViewAll }) {
     })
   }, [dms])
 
-  // Best time to DM: group by hour
   const hourData = useMemo(() => {
     const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, count: 0, successes: 0 }))
     dms.forEach(dm => {
@@ -143,16 +251,14 @@ export default function Overview({ dms, lines, onViewAll }) {
     }))
   }, [dms])
 
-  // Running success rate by week
   const weeklyData = useMemo(() => {
     if (!dms.length) return []
     const sorted = [...dms].sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt))
 
-    // Group by ISO week (Mon–Sun)
     function getWeekKey(dateStr) {
       const d = new Date(dateStr)
-      const day = d.getDay() || 7 // Mon=1..Sun=7
-      d.setDate(d.getDate() - (day - 1)) // back to Monday
+      const day = d.getDay() || 7
+      d.setDate(d.getDate() - (day - 1))
       return d.toISOString().slice(0, 10)
     }
 
@@ -178,28 +284,52 @@ export default function Overview({ dms, lines, onViewAll }) {
 
   return (
     <div className="space-y-6">
-      {/* Stat Cards */}
+      {/* ── Metric Bloom Stat Cards ── */}
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-        <StatCard icon={MessageCircle} label="Total DMs" value={stats.total} />
-        <StatCard icon={Zap} label="Good Energy Rate" value={`${stats.goodRate}%`} color="text-green-400" sub={`${stats.successes} DMs`} />
-        <StatCard icon={Phone} label="Got the Number" value={stats.numbers} color="text-blue-400" />
-        <StatCard icon={Ghost} label="Ghosted" value={stats.ghosted} color="text-orange-400" sub="Read + Delivered" />
-        <StatCard icon={AlertTriangle} label="Bad Energy Rate" value={`${stats.badRate}%`} color="text-red-400" />
+        <StatCard
+          icon={MessageCircle}
+          label="Total DMs"
+          value={stats.total}
+          bloomColor="rgba(59,130,246,0.1)"
+        />
+        <StatCard
+          icon={Zap}
+          label="Good Energy Rate"
+          value={`${stats.goodRate}%`}
+          sub={`${stats.successes} DMs`}
+          bloomColor="rgba(16,185,129,0.1)"
+        />
+        <StatCard
+          icon={Phone}
+          label="Got the Number"
+          value={stats.numbers}
+          bloomColor="rgba(59,130,246,0.1)"
+        />
+        <StatCard
+          icon={Ghost}
+          label="Ghosted"
+          value={stats.ghosted}
+          sub="Read + Delivered"
+          bloomColor="rgba(249,115,22,0.1)"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          label="Bad Energy Rate"
+          value={`${stats.badRate}%`}
+          bloomColor="rgba(186,26,26,0.1)"
+        />
         <StatCard
           icon={Flame}
           label="Day Streak"
           value={streak}
-          color={streak > 0 ? 'text-orange-400' : 'text-[var(--text-1)]'}
           sub={streak === 1 ? '1 day' : streak > 1 ? `${streak} days` : 'No streak yet'}
+          bloomColor="rgba(249,115,22,0.12)"
         />
       </div>
 
-      {/* Best Time to DM */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-2">
-          <Clock size={15} className="text-violet-400" />
-          <h3 className="text-sm font-semibold text-[var(--text-1)]">Best Time to DM</h3>
-        </div>
+      {/* ── Best Time to DM ── */}
+      <SectionCard>
+        <SectionHeader icon={Clock} title="Best Time to DM" />
         {dms.length === 0 ? (
           <EmptyState message="Log some DMs to see hourly patterns." />
         ) : (
@@ -208,59 +338,64 @@ export default function Overview({ dms, lines, onViewAll }) {
               <BarChart data={hourData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                 <XAxis
                   dataKey="hour"
-                  tick={{ fontSize: 10, fill: 'var(--text-4)' }}
+                  tick={{ fontSize: 10, fill: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
                   tickFormatter={h => h % 6 === 0 ? `${h}h` : ''}
                   axisLine={false}
                   tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 10, fill: 'var(--text-4)' }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(124,58,237,0.1)' }} />
+                <YAxis
+                  tick={{ fontSize: 10, fill: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(182,0,79,0.06)' }} />
                 <Bar
                   dataKey="count"
-                  radius={[3, 3, 0, 0]}
-                  fill="rgba(124,58,237,0.4)"
-                  // per-bar color via shape prop
+                  radius={[4, 4, 0, 0]}
+                  fill="rgba(182,0,79,0.35)"
                   shape={(props) => {
                     const { x, y, width, height, count, rate } = props
-                    const opacity = count === 0 ? 0.15
-                      : rate === null ? 0.4
-                      : 0.3 + (rate / 100) * 0.7
+                    const opacity = count === 0 ? 0.1
+                      : rate === null ? 0.35
+                      : 0.25 + (rate / 100) * 0.65
                     return (
                       <rect
                         x={x} y={y} width={width} height={height}
-                        fill={`rgba(124,58,237,${opacity})`}
-                        rx={3} ry={3}
+                        fill={`rgba(182,0,79,${opacity})`}
+                        rx={4} ry={4}
                       />
                     )
                   }}
                 />
               </BarChart>
             </ResponsiveContainer>
-            <p className="text-xs text-[var(--text-4)] mt-1">Bar height = DM count · Color intensity = success rate</p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+            >
+              Bar height = DM count · Color intensity = success rate
+            </p>
           </div>
         )}
-      </div>
+      </SectionCard>
 
-      {/* Running Success Rate */}
+      {/* ── Running Success Rate ── */}
       {weeklyData.length > 1 && (
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-2">
-            <TrendingUp size={15} className="text-violet-400" />
-            <h3 className="text-sm font-semibold text-[var(--text-1)]">Running Success Rate</h3>
-          </div>
+        <SectionCard>
+          <SectionHeader icon={TrendingUp} title="Running Success Rate" />
           <div className="p-5">
             <ResponsiveContainer width="100%" height={160}>
               <LineChart data={weeklyData} margin={{ top: 0, right: 10, left: -30, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(171,173,174,0.2)" />
                 <XAxis
                   dataKey="week"
-                  tick={{ fontSize: 10, fill: 'var(--text-4)' }}
+                  tick={{ fontSize: 10, fill: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
                   tickFormatter={w => w.slice(5)}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: 'var(--text-4)' }}
+                  tick={{ fontSize: 10, fill: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
                   axisLine={false}
                   tickLine={false}
                   domain={[0, 100]}
@@ -270,45 +405,76 @@ export default function Overview({ dms, lines, onViewAll }) {
                 <Line
                   type="monotone"
                   dataKey="rate"
-                  stroke="#7c3aed"
+                  stroke="var(--primary)"
                   strokeWidth={2}
-                  dot={{ fill: '#7c3aed', r: 3 }}
+                  dot={{ fill: 'var(--primary)', r: 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {/* Recent DMs */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
-          <h3 className="text-sm font-semibold text-[var(--text-1)]">Recent DMs</h3>
-          {dms.length > 5 && (
-            <button onClick={onViewAll} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+      {/* ── Recent DMs ── */}
+      <SectionCard>
+        <SectionHeader
+          title="Recent DMs"
+          action={dms.length > 5 ? (
+            <button
+              onClick={onViewAll}
+              className="text-xs transition-colors"
+              style={{ color: 'var(--primary)', fontFamily: 'var(--font-body)' }}
+            >
               View all →
             </button>
-          )}
-        </div>
+          ) : null}
+        />
         {recent.length === 0 ? (
           <EmptyState message="No DMs logged yet. Log your first one!" />
         ) : (
-          <div className="divide-y divide-[var(--border)]">
-            {recent.map(dm => (
-              <div key={dm.id} className="flex items-center gap-3 px-5 py-3">
+          <div>
+            {recent.map((dm, idx) => (
+              <div
+                key={dm.id}
+                className="flex items-center gap-3 transition-colors"
+                style={{
+                  padding: '0.875rem 1.25rem',
+                  background: idx % 2 === 0 ? 'transparent' : 'rgba(239,241,242,0.5)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container-low)'}
+                onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : 'rgba(239,241,242,0.5)'}
+              >
                 <Avatar username={dm.username} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[var(--text-1)] truncate">{dm.username}</span>
-                    {dm.nickname && <span className="text-xs text-[var(--text-4)]">({dm.nickname})</span>}
+                    <span
+                      className="text-sm font-medium truncate"
+                      style={{ color: 'var(--on-surface)', fontFamily: 'var(--font-body)' }}
+                    >
+                      {dm.username}
+                    </span>
+                    {dm.nickname && (
+                      <span
+                        className="text-xs"
+                        style={{ color: 'var(--on-surface-muted)' }}
+                      >
+                        ({dm.nickname})
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-[var(--text-4)] truncate">{truncate(dm.pickupLineText, 45)}</div>
+                  <div
+                    className="text-xs truncate"
+                    style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  >
+                    {truncate(dm.pickupLineText, 45)}
+                  </div>
                 </div>
                 <PlatformDot platform={dm.platform} showLabel={false} />
                 <StatusBadge status={dm.status} />
                 <span
-                  className="text-xs text-[var(--text-4)] whitespace-nowrap cursor-default hidden sm:block"
+                  className="text-xs whitespace-nowrap cursor-default hidden sm:block"
+                  style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
                   title={formatFullDate(dm.sentAt)}
                 >
                   {formatRelativeTime(dm.sentAt)}
@@ -317,64 +483,110 @@ export default function Overview({ dms, lines, onViewAll }) {
             ))}
           </div>
         )}
-      </div>
+      </SectionCard>
 
-      {/* Pickup Line Performance */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[var(--border)] flex items-center gap-2">
-          <TrendingUp size={15} className="text-violet-400" />
-          <h3 className="text-sm font-semibold text-[var(--text-1)]">Pickup Line Performance</h3>
-        </div>
+      {/* ── Pickup Line Performance ── */}
+      <SectionCard>
+        <SectionHeader icon={TrendingUp} title="Pickup Line Performance" />
         {linePerf.length === 0 ? (
           <EmptyState message="Log some DMs to see pickup line stats." />
         ) : (
-          <div className="p-5 space-y-3">
+          <div className="p-5 space-y-4">
             {linePerf.map((item) => (
-              <div key={item.id} className="space-y-1">
+              <div key={item.id} className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-[var(--text-2)] truncate flex-1 pr-3">{truncate(item.text, 50)}</span>
-                  <span className="text-xs font-semibold text-violet-400 flex-shrink-0">{item.rate}%</span>
+                  <span
+                    className="text-xs truncate flex-1 pr-3"
+                    style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}
+                  >
+                    {truncate(item.text, 50)}
+                  </span>
+                  <span
+                    className="text-xs font-semibold flex-shrink-0"
+                    style={{ color: 'var(--primary)', fontFamily: 'var(--font-display)' }}
+                  >
+                    {item.rate}%
+                  </span>
                 </div>
-                <div className="w-full bg-[var(--surface-2)] rounded-full h-1.5">
+                <div
+                  className="w-full rounded-full h-1.5"
+                  style={{ background: 'var(--surface-container-high)' }}
+                >
                   <div
-                    className="bg-violet-500 h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${item.rate}%` }}
+                    className="h-1.5 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${item.rate}%`,
+                      background: 'linear-gradient(90deg, var(--primary), var(--primary-container))',
+                    }}
                   />
                 </div>
-                <div className="text-xs text-[var(--text-4)]">{item.used} use{item.used !== 1 ? 's' : ''}</div>
+                <div
+                  className="text-xs"
+                  style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                >
+                  {item.used} use{item.used !== 1 ? 's' : ''}
+                </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </SectionCard>
 
-      {/* Platform Breakdown */}
+      {/* ── Platform Breakdown ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {platforms.map(p => {
           const cfg = PLATFORM_CONFIG[p.platform]
           return (
-            <div key={p.platform} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5">
+            <div
+              key={p.platform}
+              className="rounded-2xl p-5"
+              style={{
+                background: 'var(--surface-container-lowest)',
+                boxShadow: CARD_SHADOW,
+              }}
+            >
               <div className="flex items-center gap-2 mb-4">
                 <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
-                <span className="font-semibold text-[var(--text-1)]">{p.platform}</span>
-                <span className="text-xs text-[var(--text-4)] ml-auto">{p.total} DMs</span>
+                <span
+                  className="font-semibold"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--on-surface)' }}
+                >
+                  {p.platform}
+                </span>
+                <span
+                  className="text-xs ml-auto"
+                  style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                >
+                  {p.total} DMs
+                </span>
               </div>
               <div className="space-y-2.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-3)]">Good Energy Rate</span>
-                  <span className="text-green-400 font-medium">{p.goodRate}%</span>
+                  <span style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}>
+                    Good Energy Rate
+                  </span>
+                  <span style={{ color: '#10b981', fontWeight: 600 }}>{p.goodRate}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-3)]">Got Number Rate</span>
-                  <span className="text-blue-400 font-medium">{p.numberRate}%</span>
+                  <span style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}>
+                    Got Number Rate
+                  </span>
+                  <span style={{ color: '#3b82f6', fontWeight: 600 }}>{p.numberRate}%</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-[var(--text-3)]">Bad Energy Rate</span>
-                  <span className="text-red-400 font-medium">{p.badRate}%</span>
+                  <span style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}>
+                    Bad Energy Rate
+                  </span>
+                  <span style={{ color: 'var(--error)', fontWeight: 600 }}>{p.badRate}%</span>
                 </div>
               </div>
               {p.total === 0 && (
-                <div className="text-xs text-[var(--text-4)] mt-2">No data yet</div>
+                <div
+                  className="text-xs mt-2"
+                  style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                >
+                  No data yet
+                </div>
               )}
             </div>
           )

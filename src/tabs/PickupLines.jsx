@@ -3,6 +3,9 @@ import { Plus, Trash2, Copy, Pin, PinOff, Check } from 'lucide-react'
 import { isSuccess } from '../constants'
 import { generateId, truncate, formatRelativeTime, formatFullDate } from '../utils'
 
+const CARD_SHADOW = '0 2px 40px -5px rgba(44,47,48,0.06), 0 1px 8px -2px rgba(44,47,48,0.04)'
+const MODAL_SHADOW = '0 8px 60px -10px rgba(44,47,48,0.12)'
+
 export default function PickupLines({ lines, dms, onAdd, onUpdate, onDelete }) {
   const [text, setText] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(null)
@@ -48,141 +51,324 @@ export default function PickupLines({ lines, dms, onAdd, onUpdate, onDelete }) {
     onUpdate({ ...line, pinned: !line.pinned })
   }
 
-  const inputCls = "flex-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-1)] placeholder-[var(--text-4)] focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30"
-
   return (
     <div className="space-y-5">
-      {/* Add form */}
+      {/* ── Add form ── */}
       <form onSubmit={handleAdd} className="flex gap-2">
         <input
           type="text"
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder="Enter a new pickup line…"
-          className={inputCls}
+          style={{
+            flex: 1,
+            background: 'var(--surface-container-low)',
+            border: '1px solid rgba(171,173,174,0.15)',
+            borderRadius: '0.75rem',
+            padding: '0.625rem 1rem',
+            fontSize: '0.875rem',
+            color: 'var(--on-surface)',
+            fontFamily: 'var(--font-body)',
+            outline: 'none',
+            transition: 'border-color 0.15s, box-shadow 0.15s',
+          }}
+          onFocus={e => {
+            e.target.style.borderColor = 'rgba(182,0,79,0.4)'
+            e.target.style.boxShadow = '0 0 0 3px rgba(182,0,79,0.08)'
+          }}
+          onBlur={e => {
+            e.target.style.borderColor = 'rgba(171,173,174,0.15)'
+            e.target.style.boxShadow = 'none'
+          }}
         />
         <button
           type="submit"
           disabled={!text.trim()}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: 'linear-gradient(135deg, var(--primary), var(--primary-container))',
+            color: 'var(--on-primary)',
+            border: 'none',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 600,
+          }}
+          onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '0.9' }}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           <Plus size={15} /> Add Line
         </button>
       </form>
 
-      {/* Table */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden">
+      {/* ── Table ── */}
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'var(--surface-container-lowest)',
+          boxShadow: CARD_SHADOW,
+        }}
+      >
         {enriched.length === 0 ? (
-          <div className="text-center py-16 text-[var(--text-4)] text-sm">
+          <div
+            className="text-center py-16 text-sm"
+            style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+          >
             No pickup lines yet. Add your first one above.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[var(--border)]">
-                  <th className="text-left text-xs font-medium text-[var(--text-4)] px-5 py-3">Line</th>
-                  <th className="text-left text-xs font-medium text-[var(--text-4)] px-3 py-3 hidden sm:table-cell">Uses</th>
-                  <th className="text-left text-xs font-medium text-[var(--text-4)] px-3 py-3">Success Rate</th>
-                  <th className="text-left text-xs font-medium text-[var(--text-4)] px-3 py-3 hidden md:table-cell">Added</th>
+                <tr style={{ borderBottom: '1px solid rgba(171,173,174,0.12)' }}>
+                  <th
+                    className="text-left text-xs font-medium px-5 py-3"
+                    style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  >
+                    Line
+                  </th>
+                  <th
+                    className="text-left text-xs font-medium px-3 py-3 hidden sm:table-cell"
+                    style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  >
+                    Uses
+                  </th>
+                  <th
+                    className="text-left text-xs font-medium px-3 py-3"
+                    style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  >
+                    Success Rate
+                  </th>
+                  <th
+                    className="text-left text-xs font-medium px-3 py-3 hidden md:table-cell"
+                    style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                  >
+                    Added
+                  </th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {enriched.map(line => (
-                  <tr
-                    key={line.id}
-                    className={`transition-colors ${line.pinned ? 'bg-violet-600/5' : 'hover:bg-[var(--surface-2)]'}`}
-                  >
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        {line.pinned && <Pin size={11} className="text-violet-400 flex-shrink-0" />}
-                        <span className="text-sm text-[var(--text-1)]">{line.text}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 hidden sm:table-cell">
-                      <span className="text-sm text-[var(--text-3)]">{line.usedCount}</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      {line.successRate === null ? (
-                        <span className="text-xs text-[var(--text-4)]">—</span>
-                      ) : (
+              <tbody>
+                {enriched.map((line, idx) => {
+                  const rowBg = line.pinned
+                    ? 'rgba(182,0,79,0.04)'
+                    : idx % 2 === 0
+                      ? 'transparent'
+                      : 'rgba(239,241,242,0.4)'
+
+                  return (
+                    <tr
+                      key={line.id}
+                      className="transition-colors"
+                      style={{ background: rowBg }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container-low)'}
+                      onMouseLeave={e => e.currentTarget.style.background = rowBg}
+                    >
+                      <td className="px-5 py-3" style={{ padding: '0.875rem 1.25rem' }}>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-[var(--surface-2)] rounded-full h-1.5">
-                            <div
-                              className="bg-violet-500 h-1.5 rounded-full"
-                              style={{ width: `${line.successRate}%` }}
+                          {line.pinned && (
+                            <Pin
+                              size={11}
+                              className="flex-shrink-0"
+                              style={{ color: 'var(--primary)' }}
                             />
-                          </div>
-                          <span className="text-xs font-medium text-violet-400">{line.successRate}%</span>
+                          )}
+                          <span
+                            className="text-sm"
+                            style={{ color: 'var(--on-surface)', fontFamily: 'var(--font-body)' }}
+                          >
+                            {line.text}
+                          </span>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-3 py-3 hidden md:table-cell">
-                      <span
-                        className="text-xs text-[var(--text-4)] cursor-default"
-                        title={formatFullDate(line.createdAt)}
-                      >
-                        {formatRelativeTime(line.createdAt)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleCopy(line)}
-                          className="p-1.5 rounded-md hover:bg-[var(--surface-2)] text-[var(--text-4)] hover:text-[var(--text-2)] transition-colors"
-                          title="Copy"
+                      </td>
+                      <td className="px-3 py-3 hidden sm:table-cell">
+                        <span
+                          className="text-sm"
+                          style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}
                         >
-                          {copied === line.id ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-                        </button>
-                        <button
-                          onClick={() => handleTogglePin(line)}
-                          className={`p-1.5 rounded-md transition-colors ${
-                            line.pinned
-                              ? 'text-violet-400 hover:bg-violet-500/20'
-                              : 'text-[var(--text-4)] hover:text-violet-400 hover:bg-[var(--surface-2)]'
-                          }`}
-                          title={line.pinned ? 'Unpin' : 'Pin'}
+                          {line.usedCount}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        {line.successRate === null ? (
+                          <span
+                            className="text-xs"
+                            style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                          >
+                            —
+                          </span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-16 rounded-full h-1.5"
+                              style={{ background: 'var(--surface-container-high)' }}
+                            >
+                              <div
+                                className="h-1.5 rounded-full"
+                                style={{
+                                  width: `${line.successRate}%`,
+                                  background: 'linear-gradient(90deg, var(--primary), var(--primary-container))',
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-xs font-medium"
+                              style={{ color: 'var(--primary)', fontFamily: 'var(--font-display)' }}
+                            >
+                              {line.successRate}%
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 hidden md:table-cell">
+                        <span
+                          className="text-xs cursor-default"
+                          style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+                          title={formatFullDate(line.createdAt)}
                         >
-                          {line.pinned ? <PinOff size={13} /> : <Pin size={13} />}
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete(line.id)}
-                          className="p-1.5 rounded-md hover:bg-red-500/20 text-[var(--text-4)] hover:text-red-400 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {formatRelativeTime(line.createdAt)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          {/* Copy */}
+                          <button
+                            onClick={() => handleCopy(line)}
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ color: 'var(--on-surface-muted)' }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = 'var(--surface-container-high)'
+                              e.currentTarget.style.color = 'var(--on-surface-variant)'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = 'transparent'
+                              e.currentTarget.style.color = copied === line.id ? '#10b981' : 'var(--on-surface-muted)'
+                            }}
+                            title="Copy"
+                          >
+                            {copied === line.id
+                              ? <Check size={13} style={{ color: '#10b981' }} />
+                              : <Copy size={13} />}
+                          </button>
+
+                          {/* Pin toggle — primary color when active */}
+                          <button
+                            onClick={() => handleTogglePin(line)}
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{
+                              color: line.pinned ? 'var(--primary)' : 'var(--on-surface-muted)',
+                              background: line.pinned ? 'rgba(182,0,79,0.08)' : 'transparent',
+                            }}
+                            onMouseEnter={e => {
+                              if (!line.pinned) {
+                                e.currentTarget.style.background = 'var(--surface-container-high)'
+                                e.currentTarget.style.color = 'var(--primary)'
+                              } else {
+                                e.currentTarget.style.background = 'rgba(182,0,79,0.15)'
+                              }
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = line.pinned ? 'rgba(182,0,79,0.08)' : 'transparent'
+                              e.currentTarget.style.color = line.pinned ? 'var(--primary)' : 'var(--on-surface-muted)'
+                            }}
+                            title={line.pinned ? 'Unpin' : 'Pin'}
+                          >
+                            {line.pinned ? <PinOff size={13} /> : <Pin size={13} />}
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            onClick={() => setConfirmDelete(line.id)}
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ color: 'var(--on-surface-muted)' }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = 'rgba(186,26,26,0.1)'
+                              e.currentTarget.style.color = 'var(--error)'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = 'transparent'
+                              e.currentTarget.style.color = 'var(--on-surface-muted)'
+                            }}
+                            title="Delete"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      <div className="text-xs text-[var(--text-4)]">{lines.length} line{lines.length !== 1 ? 's' : ''} saved</div>
+      <div
+        className="text-xs"
+        style={{ color: 'var(--on-surface-muted)', fontFamily: 'var(--font-body)' }}
+      >
+        {lines.length} line{lines.length !== 1 ? 's' : ''} saved
+      </div>
 
-      {/* Confirm Delete */}
+      {/* ── Confirm Delete — glassmorphism ── */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setConfirmDelete(null)} />
-          <div className="relative bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 w-full max-w-sm shadow-2xl text-center">
-            <Trash2 size={24} className="mx-auto mb-3 text-red-400" />
-            <h3 className="text-[var(--text-1)] font-semibold mb-1">Delete this line?</h3>
-            <p className="text-sm text-[var(--text-3)] mb-5">This will not affect logged DMs.</p>
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(44,47,48,0.3)', backdropFilter: 'blur(8px)' }}
+            onClick={() => setConfirmDelete(null)}
+          />
+          <div
+            className="relative w-full max-w-sm p-6 text-center rounded-2xl"
+            style={{
+              background: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: MODAL_SHADOW,
+              border: '1px solid rgba(171,173,174,0.15)',
+            }}
+          >
+            <Trash2
+              size={24}
+              className="mx-auto mb-3"
+              style={{ color: 'var(--error)' }}
+            />
+            <h3
+              className="font-semibold mb-1"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--on-surface)' }}
+            >
+              Delete this line?
+            </h3>
+            <p
+              className="text-sm mb-5"
+              style={{ color: 'var(--on-surface-variant)', fontFamily: 'var(--font-body)' }}
+            >
+              This will not affect logged DMs.
+            </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 bg-[var(--surface-2)] hover:opacity-80 text-[var(--text-2)] rounded-lg px-4 py-2 text-sm font-medium transition-colors border border-[var(--border)]"
+                className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition-opacity"
+                style={{
+                  background: 'var(--surface-container-high)',
+                  color: 'var(--primary)',
+                  border: 'none',
+                  fontFamily: 'var(--font-body)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
                 Cancel
               </button>
               <button
                 onClick={() => { onDelete(confirmDelete); setConfirmDelete(null) }}
-                className="flex-1 bg-red-600 hover:bg-red-500 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                className="flex-1 rounded-full px-4 py-2 text-sm font-medium transition-opacity"
+                style={{
+                  background: 'var(--error)',
+                  color: 'var(--on-error)',
+                  border: 'none',
+                  fontFamily: 'var(--font-body)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
                 Delete
               </button>

@@ -3,6 +3,8 @@ import { X, Plus, AlertTriangle, Clock } from 'lucide-react'
 import { STATUSES, PLATFORMS } from '../constants'
 import { generateId, truncate, formatFullDate } from '../utils'
 
+const CARD_SHADOW = '0 8px 60px -10px rgba(44,47,48,0.12)'
+
 export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM, dms = [] }) {
   const now = new Date()
   const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
@@ -42,7 +44,6 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
     }
   }, [editDM])
 
-  // Duplicate detection (only when adding new DM)
   const isDuplicate = !editDM && form.username.trim() &&
     dms.some(d => d.username.toLowerCase() === form.username.trim().toLowerCase())
 
@@ -125,16 +126,80 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
     onClose()
   }
 
-  const inputCls = "w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-1)] placeholder-[var(--text-4)] focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30"
-  const labelCls = "block text-xs font-medium text-[var(--text-3)] mb-1.5"
+  const inputStyle = {
+    width: '100%',
+    background: 'var(--surface-container-low)',
+    border: '1px solid rgba(171,173,174,0.15)',
+    borderRadius: '0.75rem',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    color: 'var(--on-surface)',
+    fontFamily: 'var(--font-body)',
+    outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+    color: 'var(--on-surface-variant)',
+    marginBottom: '0.375rem',
+    fontFamily: 'var(--font-body)',
+  }
+
+  function handleFocus(e) {
+    e.target.style.borderColor = 'rgba(182,0,79,0.4)'
+    e.target.style.boxShadow = '0 0 0 3px rgba(182,0,79,0.08)'
+  }
+  function handleBlur(e) {
+    e.target.style.borderColor = 'rgba(171,173,174,0.15)'
+    e.target.style.boxShadow = 'none'
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
-          <h2 className="text-lg font-semibold text-[var(--text-1)]">{editDM ? 'Edit DM' : 'Log New DM'}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[var(--surface-2)] text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors">
+      {/* Glassmorphism overlay */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'rgba(44,47,48,0.3)', backdropFilter: 'blur(8px)' }}
+        onClick={onClose}
+      />
+
+      {/* Modal panel */}
+      <div
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        style={{
+          background: 'rgba(255,255,255,0.85)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '1.25rem',
+          boxShadow: CARD_SHADOW,
+          border: '1px solid rgba(171,173,174,0.15)',
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between p-5"
+          style={{ borderBottom: '1px solid rgba(171,173,174,0.12)' }}
+        >
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              color: 'var(--on-surface)',
+              margin: 0,
+            }}
+          >
+            {editDM ? 'Edit DM' : 'Log New DM'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--on-surface-variant)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container-high)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
             <X size={18} />
           </button>
         </div>
@@ -142,7 +207,14 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Duplicate warning */}
           {isDuplicate && (
-            <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2.5 text-xs text-yellow-400">
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs"
+              style={{
+                background: 'rgba(245,158,11,0.1)',
+                border: '1px solid rgba(245,158,11,0.3)',
+                color: '#92530d',
+              }}
+            >
               <AlertTriangle size={13} className="flex-shrink-0" />
               <span>You've already DM'd <strong>@{form.username.trim()}</strong>. You can still save this.</span>
             </div>
@@ -150,45 +222,53 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Username *</label>
+              <label style={labelStyle}>Username *</label>
               <input
                 type="text"
                 value={form.username}
                 onChange={e => set('username', e.target.value)}
                 placeholder="@username"
                 required
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               />
             </div>
             <div>
-              <label className={labelCls}>Nickname</label>
+              <label style={labelStyle}>Nickname</label>
               <input
                 type="text"
                 value={form.nickname}
                 onChange={e => set('nickname', e.target.value)}
                 placeholder="Optional"
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Platform *</label>
+              <label style={labelStyle}>Platform *</label>
               <select
                 value={form.platform}
                 onChange={e => set('platform', e.target.value)}
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               >
                 {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Status *</label>
+              <label style={labelStyle}>Status *</label>
               <select
                 value={form.status}
                 onChange={e => set('status', e.target.value)}
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               >
                 {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -196,11 +276,13 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
           </div>
 
           <div>
-            <label className={labelCls}>Pickup Line *</label>
+            <label style={labelStyle}>Pickup Line *</label>
             <select
               value={isCustomLine ? '__custom__' : form.pickupLineId}
               onChange={handleLineSelect}
-              className={inputCls}
+              style={inputStyle}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             >
               <option value="">Select a line…</option>
               {lines.map(l => (
@@ -216,13 +298,16 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
                   onChange={handleCustomLineChange}
                   placeholder="Type your pickup line…"
                   rows={2}
-                  className={`${inputCls} resize-none`}
+                  style={{ ...inputStyle, resize: 'none' }}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
                 />
                 {offerSaveLine && (
                   <button
                     type="button"
                     onClick={handleSaveLine}
-                    className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                    className="flex items-center gap-1.5 text-xs transition-colors"
+                    style={{ color: 'var(--primary)', fontFamily: 'var(--font-body)' }}
                   >
                     <Plus size={13} /> Save to pickup lines library
                   </button>
@@ -233,47 +318,62 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Sent At</label>
+              <label style={labelStyle}>Sent At</label>
               <input
                 type="datetime-local"
                 value={form.sentAt}
                 onChange={e => set('sentAt', e.target.value)}
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               />
             </div>
             <div>
-              <label className={labelCls}>Follow-up Date</label>
+              <label style={labelStyle}>Follow-up Date</label>
               <input
                 type="date"
                 value={form.followUpDate || ''}
                 onChange={e => set('followUpDate', e.target.value)}
-                className={inputCls}
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               />
             </div>
           </div>
 
           <div>
-            <label className={labelCls}>Notes</label>
+            <label style={labelStyle}>Notes</label>
             <textarea
               value={form.notes}
               onChange={e => set('notes', e.target.value)}
               placeholder="Optional notes…"
               rows={2}
-              className={`${inputCls} resize-none`}
+              style={{ ...inputStyle, resize: 'none' }}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
           {/* Status History (edit mode only) */}
           {editDM && editDM.statusHistory && editDM.statusHistory.length > 0 && (
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-3)] mb-2">
+              <label
+                className="flex items-center gap-1.5 mb-2"
+                style={{ ...labelStyle, marginBottom: '0.5rem' }}
+              >
                 <Clock size={12} /> Status History
               </label>
-              <div className="space-y-1.5 border border-[var(--border)] rounded-lg p-3 bg-[var(--surface-2)]">
+              <div
+                className="space-y-1.5 rounded-xl p-3"
+                style={{
+                  background: 'var(--surface-container-low)',
+                  border: '1px solid rgba(171,173,174,0.12)',
+                }}
+              >
                 {editDM.statusHistory.map((entry, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
-                    <span className="text-[var(--text-2)]">{entry.status}</span>
-                    <span className="text-[var(--text-4)]">{formatFullDate(entry.at)}</span>
+                    <span style={{ color: 'var(--on-surface-variant)' }}>{entry.status}</span>
+                    <span style={{ color: 'var(--on-surface-muted)' }}>{formatFullDate(entry.at)}</span>
                   </div>
                 ))}
               </div>
@@ -281,16 +381,35 @@ export default function LogDMModal({ onClose, onSave, lines, onSaveLine, editDM,
           )}
 
           <div className="flex gap-3 pt-1">
+            {/* Cancel — secondary */}
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-[var(--surface-2)] hover:opacity-80 text-[var(--text-2)] rounded-lg px-4 py-2.5 text-sm font-medium transition-colors border border-[var(--border)]"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-colors"
+              style={{
+                background: 'var(--surface-container-high)',
+                color: 'var(--primary)',
+                border: 'none',
+                fontFamily: 'var(--font-body)',
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
               Cancel
             </button>
+            {/* Submit — primary gradient */}
             <button
               type="submit"
-              className="flex-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-medium transition-opacity"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary), var(--primary-container))',
+                color: 'var(--on-primary)',
+                border: 'none',
+                fontFamily: 'var(--font-body)',
+                fontWeight: 600,
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
               {editDM ? 'Save Changes' : 'Log DM'}
             </button>
