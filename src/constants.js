@@ -1,4 +1,5 @@
 export const STATUSES = [
+  'Pending',
   'Got Good Energy',
   'Got the Number',
   'Got Left on Read',
@@ -7,6 +8,12 @@ export const STATUSES = [
 ]
 
 export const STATUS_CONFIG = {
+  'Pending': {
+    bg: 'bg-slate-500/20',
+    text: 'text-slate-400',
+    border: 'border-slate-500/30',
+    dot: 'bg-slate-400',
+  },
   'Got Good Energy': {
     bg: 'bg-green-500/20',
     text: 'text-green-400',
