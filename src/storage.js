@@ -40,6 +40,11 @@ export async function insertLine(line) {
   if (error) console.error(error)
 }
 
+export async function updateLine(line) {
+  const { error } = await supabase.from('pickup_lines').update(lineToDB(line)).eq('id', line.id)
+  if (error) console.error(error)
+}
+
 export async function deleteLine(id) {
   const { error } = await supabase.from('pickup_lines').delete().eq('id', id)
   if (error) console.error(error)
@@ -57,6 +62,8 @@ function dmToDB(dm) {
     status: dm.status,
     notes: dm.notes || null,
     sent_at: dm.sentAt,
+    follow_up_date: dm.followUpDate || null,
+    status_history: dm.statusHistory || [],
   }
 }
 
@@ -71,6 +78,8 @@ function dbToDM(row) {
     status: row.status,
     notes: row.notes || '',
     sentAt: row.sent_at,
+    followUpDate: row.follow_up_date || null,
+    statusHistory: row.status_history || [],
   }
 }
 
@@ -79,6 +88,7 @@ function lineToDB(line) {
     id: line.id,
     text: line.text,
     created_at: line.createdAt,
+    pinned: line.pinned || false,
   }
 }
 
@@ -87,5 +97,6 @@ function dbToLine(row) {
     id: row.id,
     text: row.text,
     createdAt: row.created_at,
+    pinned: row.pinned || false,
   }
 }
