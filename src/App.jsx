@@ -23,12 +23,9 @@ function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2 rounded-full transition-colors"
-      style={{
-        color: 'var(--on-surface-variant)',
-        background: 'transparent',
-      }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container-high)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      style={{ color: 'rgba(255,255,255,0.7)', background: 'transparent' }}
+      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#ffffff' }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
@@ -109,8 +106,8 @@ function AppInner() {
       <header
         className="sticky top-0 z-40 backdrop-blur-xl"
         style={{
-          background: 'rgba(245,246,247,0.8)',
-          boxShadow: '0 1px 20px rgba(44,47,48,0.06)',
+          background: 'rgba(26,20,35,0.95)',
+          boxShadow: '0 1px 30px rgba(0,0,0,0.2)',
         }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -121,11 +118,11 @@ function AppInner() {
                 className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-container))' }}
               >
-                <Bird size={14} style={{ color: 'var(--on-primary)' }} />
+                <Bird size={14} style={{ color: '#ffffff' }} />
               </div>
               <span
                 className="text-sm tracking-tight"
-                style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--on-surface)' }}
+                style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: '#ffffff' }}
               >
                 Fowl Hunter
               </span>
@@ -143,15 +140,17 @@ function AppInner() {
                       onClick={() => setTab(t.id)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
                       style={{
-                        background: active ? 'rgba(182,0,79,0.08)' : 'transparent',
-                        color: active ? 'var(--primary)' : 'var(--on-surface-variant)',
+                        background: active ? 'rgba(255,113,150,0.2)' : 'transparent',
+                        color: active ? '#ff7196' : 'rgba(255,255,255,0.7)',
                         fontFamily: 'var(--font-body)',
                       }}
                       onMouseEnter={e => {
-                        if (!active) e.currentTarget.style.background = 'var(--surface-container-high)'
+                        if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                        if (!active) e.currentTarget.style.color = '#ffffff'
                       }}
                       onMouseLeave={e => {
                         if (!active) e.currentTarget.style.background = 'transparent'
+                        if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.7)'
                       }}
                     >
                       <Icon size={13} />
